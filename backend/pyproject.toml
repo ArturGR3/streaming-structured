@@ -1,0 +1,13 @@
+[project]
+name = "streaming-iter"
+version = "0.1.0"
+description = "Streaming structured output examples"
+requires-python = ">=3.9"
+dependencies = [
+    "fastapi>=0.115.14",
+    "instructor>=1.9.0",
+    "openai>=1.93.0",
+    "pydantic-ai>=0.3.5",
+    "python-dotenv>=1.1.1",
+    "uvicorn>=0.35.0",
+]
