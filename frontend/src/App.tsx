@@ -129,7 +129,6 @@ function App() {
   const [resumeText, setResumeText] = useState(SAMPLE_RESUME);
   const [parsedResume, setParsedResume] = useState<Partial<CompleteResume>>({});
   const [isStreaming, setIsStreaming] = useState(false);
-  const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   const handleParseResume = async () => {
@@ -141,7 +140,6 @@ function App() {
     setIsStreaming(true);
     setError(null);
     setParsedResume({});
-    setProgress(0);
 
     try {
       await fetchEventSource('http://localhost:8000/parse-resume', {
@@ -164,20 +162,6 @@ function App() {
             }
 
             setParsedResume(data);
-            
-            // Calculate progress based on filled fields
-            const totalFields = 7; // contact_info, summary, work_experience, education, certification_and_training, projects, skill_categories
-            let filledFields = 0;
-            
-            if (data.contact_info?.name) filledFields++;
-            if (data.summary) filledFields++;
-            if (data.work_experience?.length > 0) filledFields++;
-            if (data.education?.length > 0) filledFields++;
-            if (data.certification_and_training?.length > 0) filledFields++;
-            if (data.projects?.length > 0) filledFields++;
-            if (data.skill_categories?.length > 0) filledFields++;
-            
-            setProgress((filledFields / totalFields) * 100);
           } catch (parseError) {
             console.error('Error parsing event data:', parseError);
             console.error('Raw event data that failed to parse:', event.data);
@@ -187,7 +171,6 @@ function App() {
         },
         onclose() {
           setIsStreaming(false);
-          setProgress(100);
         },
         onerror(err) {
           console.error('EventSource failed:', err);
@@ -205,44 +188,36 @@ function App() {
   const clearResume = () => {
     setResumeText('');
     setParsedResume({});
-    setProgress(0);
     setError(null);
   };
 
   const loadSample = () => {
     setResumeText(SAMPLE_RESUME);
     setParsedResume({});
-    setProgress(0);
     setError(null);
   };
 
   return (
     <div className="bg-gray-100 min-h-screen font-sans">
-      <header className="bg-white shadow-md">
-        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold leading-tight text-gray-900">ATS-Friendly Resume Parser</h1>
-          <p className="text-sm text-gray-500 mt-1">Paste a resume on the left, see the structured, ATS-friendly version on the right in real-time.</p>
-        </div>
-      </header>
 
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 gap-6">
           
           {/* Input Section */}
-          <div className="bg-white p-6 rounded-lg shadow">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-gray-800">Resume Input</h2>
+          <div className="bg-white p-4 rounded-lg shadow">
+            <div className="flex justify-between items-center mb-3">
+              <h2 className="text-lg font-bold text-gray-800">Resume Input</h2>
               <div className="space-x-2">
                 <button 
                   onClick={loadSample} 
-                  className="px-4 py-2 text-sm font-medium text-white bg-gray-600 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50"
+                  className="px-3 py-1 text-sm font-medium text-white bg-gray-600 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50"
                   disabled={isStreaming}
                 >
                   Load Sample
                 </button>
                 <button 
                   onClick={clearResume} 
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200 disabled:opacity-50"
+                  className="px-3 py-1 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200 disabled:opacity-50"
                   disabled={isStreaming}
                 >
                   Clear
@@ -253,27 +228,21 @@ function App() {
             <textarea
               value={resumeText}
               onChange={(e) => setResumeText(e.target.value)}
-              className="w-full h-96 p-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              className="w-full h-32 p-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm resize-none"
               placeholder="Paste your resume here..."
               disabled={isStreaming}
             />
 
             <button
               onClick={handleParseResume}
-              className="mt-4 w-full px-4 py-3 text-lg font-bold text-white bg-indigo-600 rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+              className="mt-3 w-full px-4 py-2 text-base font-bold text-white bg-indigo-600 rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
               disabled={isStreaming}
             >
               {isStreaming ? 'Parsing...' : 'Parse Resume'}
             </button>
-
-            {isStreaming && (
-              <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 mt-4">
-                <div className="bg-indigo-600 h-2.5 rounded-full" style={{ width: `${progress}%` }}></div>
-              </div>
-            )}
             
             {error && (
-              <div className="mt-4 p-3 bg-red-100 text-red-700 border border-red-400 rounded-md">
+              <div className="mt-3 p-3 bg-red-100 text-red-700 border border-red-400 rounded-md">
                 <p>{error}</p>
               </div>
             )}
@@ -281,7 +250,6 @@ function App() {
 
           {/* Output Section */}
           <div className="bg-white p-6 rounded-lg shadow">
-             <h2 className="text-xl font-bold text-gray-800 mb-4">Parsed Output</h2>
             <ResumeTemplate resumeData={parsedResume} isStreaming={isStreaming} />
           </div>
 

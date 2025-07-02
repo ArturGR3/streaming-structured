@@ -64,7 +64,7 @@ app = FastAPI(title="Resume Parser Stream - PydanticAI")
 
 # Create PydanticAI agent with built-in streaming support
 agent = Agent(
-    'openai:gpt-4o-mini',
+    'openai:gpt-4.1-mini',
     output_type=CompleteResume,
     system_prompt="""Parse resumes into structured JSON format with these sections:
     - contact_info: name, email, phone, locations  
@@ -95,13 +95,13 @@ async def parse_resume(request: Request):
     if not resume_text:
         raise HTTPException(status_code=400, detail="Resume text is required")
     
+    # Generate stream of JSON data
     async def generate_stream():
         try:
-            # PydanticAI's native streaming - much cleaner than Instructor!
+            # Run the agent and stream the output
             async with agent.run_stream(resume_text) as result:
                 async for partial_resume in result.stream():
-                    try:
-                        # PydanticAI handles partial validation automatically
+                    try: # Convert to JSON and send to client
                         json_data = json.dumps(partial_resume, default=str)
                         yield f"data: {json_data}\n\n"
                     except Exception:
@@ -113,12 +113,9 @@ async def parse_resume(request: Request):
     return StreamingResponse(
         generate_stream(), 
         media_type="text/event-stream",
-        headers={"Connection": "keep-alive"}
+        headers={"Connection": "keep-alive"} # Keep the connection alive
     )
 
-@app.get("/health")
-async def health_check():
-    return {"status": "healthy", "framework": "pydantic-ai"}
 
 if __name__ == "__main__":
     import uvicorn
