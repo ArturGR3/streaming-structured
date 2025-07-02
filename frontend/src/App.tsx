@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
 import ResumeTemplate from './components/ResumeTemplate';
-import './App.css';
 
 // Type definitions for resume structure
 interface ContactInfo {
@@ -218,94 +217,76 @@ function App() {
   };
 
   return (
-    <div className="App">
-      <header className="app-header">
-        <h1>🚀 Resume Parser Stream</h1>
-        <p>Real-time structured resume parsing with streaming JSON output</p>
+    <div className="bg-gray-100 min-h-screen font-sans">
+      <header className="bg-white shadow-md">
+        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+          <h1 className="text-3xl font-bold leading-tight text-gray-900">ATS-Friendly Resume Parser</h1>
+          <p className="text-sm text-gray-500 mt-1">Paste a resume on the left, see the structured, ATS-friendly version on the right in real-time.</p>
+        </div>
       </header>
 
-      <div className="container">
-        <div className="input-section">
-          <div className="input-header">
-            <h2>Resume Input</h2>
-            <div className="button-group">
-              <button 
-                onClick={loadSample} 
-                className="secondary-button"
-                disabled={isStreaming}
-              >
-                Load Sample
-              </button>
-              <button 
-                onClick={clearResume} 
-                className="secondary-button"
-                disabled={isStreaming}
-              >
-                Clear
-              </button>
+      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          
+          {/* Input Section */}
+          <div className="bg-white p-6 rounded-lg shadow">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-gray-800">Resume Input</h2>
+              <div className="space-x-2">
+                <button 
+                  onClick={loadSample} 
+                  className="px-4 py-2 text-sm font-medium text-white bg-gray-600 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50"
+                  disabled={isStreaming}
+                >
+                  Load Sample
+                </button>
+                <button 
+                  onClick={clearResume} 
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200 disabled:opacity-50"
+                  disabled={isStreaming}
+                >
+                  Clear
+                </button>
+              </div>
             </div>
-          </div>
-          
-          <textarea
-            value={resumeText}
-            onChange={(e) => setResumeText(e.target.value)}
-            placeholder="Paste your resume text here..."
-            disabled={isStreaming}
-            className="resume-input"
-          />
-          
-          <div className="controls">
-            <button 
-              onClick={handleParseResume} 
-              disabled={isStreaming || !resumeText.trim()}
-              className="parse-button"
+            
+            <textarea
+              value={resumeText}
+              onChange={(e) => setResumeText(e.target.value)}
+              className="w-full h-96 p-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              placeholder="Paste your resume here..."
+              disabled={isStreaming}
+            />
+
+            <button
+              onClick={handleParseResume}
+              className="mt-4 w-full px-4 py-3 text-lg font-bold text-white bg-indigo-600 rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+              disabled={isStreaming}
             >
               {isStreaming ? 'Parsing...' : 'Parse Resume'}
             </button>
-            
+
             {isStreaming && (
-              <div className="progress-container">
-                <div className="progress-bar">
-                  <div 
-                    className="progress-fill" 
-                    style={{ width: `${progress}%` }}
-                  />
-                </div>
-                <span className="progress-text">{Math.round(progress)}%</span>
+              <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 mt-4">
+                <div className="bg-indigo-600 h-2.5 rounded-full" style={{ width: `${progress}%` }}></div>
+              </div>
+            )}
+            
+            {error && (
+              <div className="mt-4 p-3 bg-red-100 text-red-700 border border-red-400 rounded-md">
+                <p>{error}</p>
               </div>
             )}
           </div>
 
-          {error && (
-            <div className="error-message">
-              ⚠️ {error}
-            </div>
-          )}
-        </div>
+          {/* Output Section */}
+          <div className="bg-white p-6 rounded-lg shadow">
+             <h2 className="text-xl font-bold text-gray-800 mb-4">Parsed Output</h2>
+            <ResumeTemplate resumeData={parsedResume} isStreaming={isStreaming} />
+          </div>
 
-        <div className="output-section">
-          <h2>Parsed Resume (Live Stream)</h2>
-          
-          {Object.keys(parsedResume).length === 0 && !isStreaming ? (
-            <div className="empty-state">
-              👈 Enter resume text and click "Parse Resume" to see a professional resume being built in real-time
-            </div>
-          ) : (
-            <ResumeTemplate 
-              resumeData={parsedResume} 
-              isStreaming={isStreaming}
-            />
-          )}
         </div>
-      </div>
-
-      <footer className="app-footer">
-        <p>
-          Built with <strong>FastAPI</strong> + <strong>Instructor</strong> + <strong>React</strong>
-          <br />
-          Demonstrates streaming structured output from LLMs
-        </p>
-      </footer>
+      </main>
     </div>
   );
 }

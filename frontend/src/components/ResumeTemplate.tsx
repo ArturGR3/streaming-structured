@@ -1,5 +1,4 @@
 import React from 'react';
-import './ResumeTemplate.css';
 
 interface ContactInfo {
   name: string;
@@ -65,7 +64,6 @@ interface ResumeTemplateProps {
 const ResumeTemplate: React.FC<ResumeTemplateProps> = ({ resumeData, isStreaming }) => {
   const { contact_info, summary, work_experience, education, certification_and_training, projects, skill_categories } = resumeData;
 
-  // Helper function to check if a section has content
   const hasContent = (section: any): boolean => {
     if (!section) return false;
     if (Array.isArray(section)) return section.length > 0;
@@ -76,229 +74,136 @@ const ResumeTemplate: React.FC<ResumeTemplateProps> = ({ resumeData, isStreaming
     }
     return section.toString().trim() !== '';
   };
+  
+  const StreamingPlaceholder = ({ text }: { text: string }) => (
+    <div className="py-4">
+      <p className="text-sm text-gray-500 animate-pulse">{text}</p>
+    </div>
+  );
+
+  const Section = ({ title, content, children }: { title: string, content: any, children: React.ReactNode }) => {
+    if (hasContent(content)) {
+      return (
+        <div className="mb-6">
+          <h2 className="text-xl font-bold text-gray-700 border-b-2 border-gray-300 pb-2 mb-3">{title}</h2>
+          {children}
+        </div>
+      );
+    }
+    if (isStreaming) {
+      return <StreamingPlaceholder text={`Extracting ${title.toLowerCase()}...`} />;
+    }
+    return null;
+  };
 
   return (
-    <div className="resume-template">
+    <div className="bg-white shadow-lg rounded-lg p-8 max-w-4xl mx-auto font-sans text-gray-800">
+      
       {/* Header Section */}
-      <div className={`resume-section ${hasContent(contact_info) ? 'has-content' : 'streaming'}`}>
-        {contact_info?.name && (
-          <div className="resume-header">
-            <h1 className="resume-name">{contact_info.name}</h1>
-            <div className="resume-contact">
-              {contact_info.email && (
-                <span className="contact-item">
-                  📧 {contact_info.email}
-                </span>
-              )}
-              {contact_info.phone && (
-                <span className="contact-item">
-                  📞 {contact_info.phone}
-                </span>
-              )}
-              {contact_info.possible_work_locations?.length > 0 && (
-                <span className="contact-item">
-                  📍 {contact_info.possible_work_locations.join(', ')}
-                </span>
-              )}
-            </div>
+      {hasContent(contact_info) ? (
+        <div className="text-center border-b pb-4 mb-4">
+          <h1 className="text-4xl font-bold">{contact_info?.name}</h1>
+          <div className="flex justify-center items-center space-x-4 mt-2 text-sm text-gray-600">
+            {contact_info?.email && <span>{contact_info.email}</span>}
+            {contact_info?.phone && <><span>|</span><span>{contact_info.phone}</span></>}
+            {contact_info?.possible_work_locations && contact_info.possible_work_locations.length > 0 && <><span>|</span><span>{contact_info.possible_work_locations.join(', ')}</span></>}
           </div>
-        )}
-        {!hasContent(contact_info) && isStreaming && (
-          <div className="streaming-placeholder">
-            <div className="pulse">Extracting contact information...</div>
-          </div>
-        )}
-      </div>
+        </div>
+      ) : (isStreaming && <StreamingPlaceholder text="Extracting contact information..." />)}
 
       {/* Summary Section */}
-      {(hasContent(summary) || isStreaming) && (
-        <div className={`resume-section ${hasContent(summary) ? 'has-content' : 'streaming'}`}>
-          {hasContent(summary) ? (
-            <>
-              <h2 className="section-title">Professional Summary</h2>
-              <p className="summary-text">{summary}</p>
-            </>
-          ) : (
-            <div className="streaming-placeholder">
-              <div className="pulse">Extracting professional summary...</div>
-            </div>
-          )}
-        </div>
-      )}
+      <Section title="Professional Summary" content={summary}>
+        <p className="text-base text-gray-700">{summary}</p>
+      </Section>
 
       {/* Work Experience Section */}
-      {(hasContent(work_experience) || isStreaming) && (
-        <div className={`resume-section ${hasContent(work_experience) ? 'has-content' : 'streaming'}`}>
-          {hasContent(work_experience) ? (
-            <>
-              <h2 className="section-title">Work Experience</h2>
-              {work_experience?.map((job, index) => (
-                <div key={index} className="work-item">
-                  <div className="work-header">
-                    <h3 className="job-title">{job.role}</h3>
-                    <span className="job-period">
-                      {job.from_date} - {job.to_date}
-                    </span>
-                  </div>
-                  <div className="company-location">
-                    <strong>{job.company}</strong> • {job.location}
-                  </div>
-                  {job.description?.length > 0 && (
-                    <ul className="job-description">
-                      {job.description.map((desc, i) => (
-                        <li key={i}>{desc}</li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              ))}
-            </>
-          ) : (
-            <div className="streaming-placeholder">
-              <div className="pulse">Extracting work experience...</div>
+      <Section title="Work Experience" content={work_experience}>
+        {work_experience?.map((job, index) => (
+          <div key={index} className="mb-4">
+            <div className="flex justify-between items-baseline">
+              <h3 className="text-lg font-semibold">{job.role}</h3>
+              <span className="text-sm font-medium text-gray-500">{job.from_date} - {job.to_date}</span>
             </div>
-          )}
-        </div>
-      )}
-
+            <div className="text-md text-gray-600">{job.company} • {job.location}</div>
+            <ul className="list-disc list-inside mt-2 text-sm text-gray-700 space-y-1">
+              {job.description?.map((desc, i) => <li key={i}>{desc}</li>)}
+            </ul>
+          </div>
+        ))}
+      </Section>
+      
       {/* Education Section */}
-      {(hasContent(education) || isStreaming) && (
-        <div className={`resume-section ${hasContent(education) ? 'has-content' : 'streaming'}`}>
-          {hasContent(education) ? (
-            <>
-              <h2 className="section-title">Education</h2>
-              {education?.map((edu, index) => (
-                <div key={index} className="education-item">
-                  <div className="education-header">
-                    <h3 className="degree-title">{edu.degree}</h3>
-                    <span className="education-period">
-                      {edu.from_date} - {edu.to_date}
-                    </span>
-                  </div>
-                  <div className="university-name">{edu.university}</div>
-                  {edu.special_achievements?.length > 0 && (
-                    <ul className="achievements">
-                      {edu.special_achievements.map((achievement, i) => (
-                        <li key={i}>{achievement}</li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              ))}
-            </>
-          ) : (
-            <div className="streaming-placeholder">
-              <div className="pulse">Extracting education...</div>
+      <Section title="Education" content={education}>
+        {education?.map((edu, index) => (
+          <div key={index} className="mb-3">
+            <div className="flex justify-between items-baseline">
+              <h3 className="text-lg font-semibold">{edu.degree}</h3>
+              <span className="text-sm font-medium text-gray-500">{edu.from_date} - {edu.to_date}</span>
             </div>
-          )}
-        </div>
-      )}
+            <div className="text-md text-gray-600">{edu.university}</div>
+            <ul className="list-disc list-inside mt-2 text-sm text-gray-700 space-y-1">
+              {edu.special_achievements?.map((achievement, i) => <li key={i}>{achievement}</li>)}
+            </ul>
+          </div>
+        ))}
+      </Section>
 
       {/* Projects Section */}
-      {(hasContent(projects) || isStreaming) && (
-        <div className={`resume-section ${hasContent(projects) ? 'has-content' : 'streaming'}`}>
-          {hasContent(projects) ? (
-            <>
-              <h2 className="section-title">Projects</h2>
-              {projects?.map((project, index) => (
-                <div key={index} className="project-item">
-                  <div className="project-header">
-                    <h3 className="project-title">
-                      {project.link ? (
-                        <a href={project.link} target="_blank" rel="noopener noreferrer">
-                          {project.name} 🔗
-                        </a>
-                      ) : (
-                        project.name
-                      )}
-                    </h3>
-                    <span className="project-date">{project.date}</span>
-                  </div>
-                  <p className="project-purpose">{project.purpose}</p>
-                  {project.key_technologies_concepts && (
-                    <div className="project-tech">
-                      <strong>Technologies:</strong> {project.key_technologies_concepts}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </>
-          ) : (
-            <div className="streaming-placeholder">
-              <div className="pulse">Extracting projects...</div>
+      <Section title="Projects" content={projects}>
+        {projects?.map((project, index) => (
+          <div key={index} className="mb-4">
+            <div className="flex justify-between items-baseline">
+              <h3 className="text-lg font-semibold">
+                {project.link ? (
+                  <a href={project.link} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{project.name}</a>
+                ) : (
+                  project.name
+                )}
+              </h3>
+              <span className="text-sm font-medium text-gray-500">{project.date}</span>
             </div>
-          )}
-        </div>
-      )}
-
-      {/* Skills Section */}
-      {(hasContent(skill_categories) || isStreaming) && (
-        <div className={`resume-section ${hasContent(skill_categories) ? 'has-content' : 'streaming'}`}>
-          {hasContent(skill_categories) ? (
-            <>
-              <h2 className="section-title">Skills</h2>
-              <div className="skills-grid">
-                {skill_categories?.map((category, index) => (
-                  <div key={index} className="skill-category">
-                    <h4 className="skill-category-name">{category.name}</h4>
-                    <div className="skills-list">
-                      {category.skills?.map((skill, i) => (
-                        <span key={i} className="skill-tag">
-                          {skill}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </>
-          ) : (
-            <div className="streaming-placeholder">
-              <div className="pulse">Extracting skills...</div>
-            </div>
-          )}
-        </div>
-      )}
+            <p className="text-sm text-gray-600 italic mt-1">{project.purpose}</p>
+            {project.key_technologies_concepts && (
+              <p className="text-sm text-gray-700 mt-2">
+                <span className="font-semibold">Technologies:</span> {project.key_technologies_concepts}
+              </p>
+            )}
+          </div>
+        ))}
+      </Section>
 
       {/* Certifications Section */}
-      {hasContent(certification_and_training) && (
-        <div className="resume-section has-content">
-          <h2 className="section-title">Certifications & Training</h2>
-          {certification_and_training?.map((cert, index) => (
-            <div key={index} className="certification-item">
-              <div className="certification-header">
-                <h3 className="certification-title">
-                  {cert.certificate_link ? (
-                    <a href={cert.certificate_link} target="_blank" rel="noopener noreferrer">
-                      {cert.name} 🔗
-                    </a>
-                  ) : (
-                    cert.name
-                  )}
-                </h3>
-                <span className="certification-date">{cert.date}</span>
-              </div>
-              <div className="certification-org">{cert.organization}</div>
-              {cert.description && <p className="certification-desc">{cert.description}</p>}
-              {cert.key_technologies_concepts && (
-                <div className="certification-tech">
-                  <strong>Key Concepts:</strong> {cert.key_technologies_concepts}
-                </div>
-              )}
+      <Section title="Certifications & Training" content={certification_and_training}>
+        {certification_and_training?.map((cert, index) => (
+          <div key={index} className="mb-4">
+            <div className="flex justify-between items-baseline">
+              <h3 className="text-lg font-semibold">{cert.name}</h3>
+              <span className="text-sm font-medium text-gray-500">{cert.date}</span>
             </div>
-          ))}
-        </div>
-      )}
-
-      {/* Loading Indicator */}
-      {isStreaming && (
-        <div className="streaming-indicator">
-          <div className="loader"></div>
-          <span>Building resume in real-time...</span>
-        </div>
-      )}
+            <div className="text-md text-gray-600">{cert.organization}</div>
+            <p className="text-sm text-gray-700 mt-1">{cert.description}</p>
+             {cert.certificate_link && (
+              <a href={cert.certificate_link} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline">View Certificate</a>
+            )}
+          </div>
+        ))}
+      </Section>
+      
+      {/* Skills Section */}
+      <Section title="Skills" content={skill_categories}>
+        {skill_categories?.map((category, index) => (
+          <div key={index} className="mb-3">
+            <h3 className="text-md font-semibold">{category.name}</h3>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {category.skills?.map((skill, i) => (
+                <span key={i} className="bg-gray-200 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded-full">{skill}</span>
+              ))}
+            </div>
+          </div>
+        ))}
+      </Section>
     </div>
   );
 };
 
-export default ResumeTemplate; 
+export default ResumeTemplate;
