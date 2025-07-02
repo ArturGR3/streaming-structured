@@ -1,5 +1,6 @@
 # Streaming Structured Output with PydanticAI & FastAPI: Real-Time JSON with Lower Latency
 https://github.com/user-attachments/assets/dcfa442c-09f8-4661-81bd-32c6a9c27ea1
+
 ## Prerequisites
 
 - Python 3.9+ 
